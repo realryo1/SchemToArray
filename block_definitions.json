@@ -102,6 +102,11 @@
       "default_id": 14
     },
     {
+      "name": "barrier",
+      "names_ja": "新しいブロックはこれを複製して追加する",
+      "default_id": 39
+    },
+    {
       "name": "air",
       "names_ja": "空気",
       "default_id": 0
