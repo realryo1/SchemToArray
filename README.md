@@ -17,18 +17,13 @@ Minecraft の `.schem` ファイルを C 言語用の 3D 配列に変換する�
 
 ## インストール
 
-1. このリポジトリをクローン：
+このリポジトリをクローン：
 ```bash
 git clone https://github.com/realryo1/SchemToArray.git
 cd SchemToArray
 ```
 
-2. 依存ライブラリをインストール（手動）：
-```bash
-pip install -r requirements.txt
-```
-
-または、スクリプト実行時に自動インストールされます。
+必要なライブラリは自動でインストールされます。
 
 ## 使い方
 
