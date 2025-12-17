@@ -2,7 +2,7 @@
   "blocks": [
     {
       "name": "spruce_stairs",
-      "names_ja": "ƒgƒEƒq‚ÌŠK’i",
+      "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ",
       "default_id": 5,
       "conditions": [
         {
@@ -11,7 +11,7 @@
             "facing": "east"
           },
           "id": 5,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[‰º•t‚«E“ŒŒü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸‹ä»˜ããƒ»æ±å‘ã]"
         },
         {
           "properties": {
@@ -19,7 +19,7 @@
             "facing": "west"
           },
           "id": 6,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[‰º•t‚«E¼Œü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸‹ä»˜ããƒ»è¥¿å‘ã]"
         },
         {
           "properties": {
@@ -27,7 +27,7 @@
             "facing": "south"
           },
           "id": 7,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[‰º•t‚«E“ìŒü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸‹ä»˜ããƒ»å—å‘ã]"
         },
         {
           "properties": {
@@ -35,7 +35,7 @@
             "facing": "north"
           },
           "id": 8,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[‰º•t‚«E–kŒü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸‹ä»˜ããƒ»åŒ—å‘ã]"
         },
         {
           "properties": {
@@ -43,7 +43,7 @@
             "facing": "east"
           },
           "id": 9,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[ã•t‚«E“ŒŒü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸Šä»˜ããƒ»æ±å‘ã]"
         },
         {
           "properties": {
@@ -51,7 +51,7 @@
             "facing": "west"
           },
           "id": 10,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[ã•t‚«E¼Œü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸Šä»˜ããƒ»è¥¿å‘ã]"
         },
         {
           "properties": {
@@ -59,7 +59,7 @@
             "facing": "south"
           },
           "id": 11,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[ã•t‚«E“ìŒü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸Šä»˜ããƒ»å—å‘ã]"
         },
         {
           "properties": {
@@ -67,46 +67,46 @@
             "facing": "north"
           },
           "id": 12,
-          "names_ja": "ƒgƒEƒq‚ÌŠK’i[ã•t‚«E–kŒü‚«]"
+          "names_ja": "ãƒˆã‚¦ãƒ’ã®éšæ®µ[ä¸Šä»˜ããƒ»åŒ—å‘ã]"
         }
       ]
     },
     {
       "name": "spruce_planks",
-      "names_ja": "ƒgƒEƒq‚Ì”ÂŞ",
+      "names_ja": "ãƒˆã‚¦ãƒ’ã®æ¿æ",
       "default_id": 1
     },
     {
       "name": "dark_oak_log",
-      "names_ja": "ƒ_[ƒNƒI[ƒN‚ÌŒ´–Ø",
+      "names_ja": "ãƒ€ãƒ¼ã‚¯ã‚ªãƒ¼ã‚¯ã®åŸæœ¨",
       "default_id": 2
     },
     {
       "name": "dark_oak_planks",
-      "names_ja": "ƒ_[ƒNƒI[ƒN‚Ì”ÂŞ",
+      "names_ja": "ãƒ€ãƒ¼ã‚¯ã‚ªãƒ¼ã‚¯ã®æ¿æ",
       "default_id": 3
     },
     {
       "name": "birch_planks",
-      "names_ja": "ƒVƒ‰ƒJƒo‚Ì”ÂŞ",
+      "names_ja": "ã‚·ãƒ©ã‚«ãƒã®æ¿æ",
       "default_id": 4
     },
     {
       "name": "dark_oak_door",
-      "names_ja": "ƒ_[ƒNƒI[ƒN‚ÌƒhƒA",
+      "names_ja": "ãƒ€ãƒ¼ã‚¯ã‚ªãƒ¼ã‚¯ã®ãƒ‰ã‚¢",
       "default_id": 13
     },
     {
       "name": "dark_oak_fence",
-      "names_ja": "ƒ_[ƒNƒI[ƒN‚ÌƒtƒFƒ“ƒX",
+      "names_ja": "ãƒ€ãƒ¼ã‚¯ã‚ªãƒ¼ã‚¯ã®ãƒ•ã‚§ãƒ³ã‚¹",
       "default_id": 14
     },
     {
       "name": "air",
-      "names_ja": "‹ó‹C",
+      "names_ja": "ç©ºæ°—",
       "default_id": 0
     }
   ],
   "default_id": 99,
-  "default_names_ja": "•s–¾"
-} 
+  "default_names_ja": "ä¸æ˜"
+}
