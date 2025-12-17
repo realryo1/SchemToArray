@@ -27,25 +27,24 @@ cd SchemToArray
 
 ## 使い方
 
-### 基本的な実行方法
+### ①パス指定で実行
 
 ```bash
 python PythonApplication1.py <schemファイルのパス> [ブロック定義JSONのパス]
 ```
 
-### 対話的に実行
+例：
+```bash
+python PythonApplication1.py ./Floor1.schem ./block_definitions.json
+```
+
+### ②対話的に実行
 
 ```bash
 python PythonApplication1.py
 ```
 
 実行時にファイルパスを入力するよう促されます。
-
-### 例
-
-```bash
-python PythonApplication1.py ./Floor1.schem ./block_definitions.json
-```
 
 ## 入力ファイル形式
 
