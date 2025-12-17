@@ -50,7 +50,17 @@ python PythonApplication1.py
 
 ### 1. `.schem` ファイル
 
-Minecraft Schematic ファイルです。WorldEdit や Litematica などで保存できます。
+Minecraft Schematic ファイルです。FAWE (FastAsyncWorldEdit) で保存できます。
+
+#### FAWE での .schem ファイル取得方法
+
+1. 木の斧を持ちながら始点（左クリック）と終点（右クリック）を設定
+2. コマンド「`//copy`」を実行
+3. コマンド「`download schem`」を実行
+4. 出てきたリンクをクリック
+5. サイトの「Click here if your download doesn't start automatically」をクリックしてダウンロード
+6. ファイル名を適当に変更
+   - ⚠️ **注意**: ファイル名がヘッダーガード名と変数名になります
 
 ### 2. ブロック定義 JSON ファイル (`block_definitions.json`)
 
