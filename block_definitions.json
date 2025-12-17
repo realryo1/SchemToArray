@@ -1,0 +1,112 @@
+{
+  "blocks": [
+    {
+      "name": "spruce_stairs",
+      "names_ja": "トウヒの階段",
+      "default_id": 5,
+      "conditions": [
+        {
+          "properties": {
+            "half": "bottom",
+            "facing": "east"
+          },
+          "id": 5,
+          "names_ja": "トウヒの階段[下付き・東向き]"
+        },
+        {
+          "properties": {
+            "half": "bottom",
+            "facing": "west"
+          },
+          "id": 6,
+          "names_ja": "トウヒの階段[下付き・西向き]"
+        },
+        {
+          "properties": {
+            "half": "bottom",
+            "facing": "south"
+          },
+          "id": 7,
+          "names_ja": "トウヒの階段[下付き・南向き]"
+        },
+        {
+          "properties": {
+            "half": "bottom",
+            "facing": "north"
+          },
+          "id": 8,
+          "names_ja": "トウヒの階段[下付き・北向き]"
+        },
+        {
+          "properties": {
+            "half": "top",
+            "facing": "east"
+          },
+          "id": 9,
+          "names_ja": "トウヒの階段[上付き・東向き]"
+        },
+        {
+          "properties": {
+            "half": "top",
+            "facing": "west"
+          },
+          "id": 10,
+          "names_ja": "トウヒの階段[上付き・西向き]"
+        },
+        {
+          "properties": {
+            "half": "top",
+            "facing": "south"
+          },
+          "id": 11,
+          "names_ja": "トウヒの階段[上付き・南向き]"
+        },
+        {
+          "properties": {
+            "half": "top",
+            "facing": "north"
+          },
+          "id": 12,
+          "names_ja": "トウヒの階段[上付き・北向き]"
+        }
+      ]
+    },
+    {
+      "name": "spruce_planks",
+      "names_ja": "トウヒの板材",
+      "default_id": 1
+    },
+    {
+      "name": "dark_oak_log",
+      "names_ja": "ダークオークの原木",
+      "default_id": 2
+    },
+    {
+      "name": "dark_oak_planks",
+      "names_ja": "ダークオークの板材",
+      "default_id": 3
+    },
+    {
+      "name": "birch_planks",
+      "names_ja": "シラカバの板材",
+      "default_id": 4
+    },
+    {
+      "name": "dark_oak_door",
+      "names_ja": "ダークオークのドア",
+      "default_id": 13
+    },
+    {
+      "name": "dark_oak_fence",
+      "names_ja": "ダークオークのフェンス",
+      "default_id": 14
+    },
+    {
+      "name": "air",
+      "names_ja": "空気",
+      "default_id": 0
+    }
+  ],
+  "default_id": 99,
+  "default_names_ja": "不明"
+} 

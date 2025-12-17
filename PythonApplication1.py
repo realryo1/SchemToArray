@@ -1,43 +1,130 @@
-﻿import nbtlib
-import numpy as np
+﻿import sys
 import os
+import json
+import subprocess
 from datetime import datetime
 
-# 設定
-SCHEM_FILE = "Floor1.schem"
-
-def block_to_id(block_name, block_properties=None):
-
-    # 階段チェック
-    if 'spruce_stairs' in block_name:
-        if block_properties is not None:
-            facing = block_properties.get('facing')
-            half = block_properties.get('half')
+def install_requirements():
+    """必要なライブラリを自動インストール"""
+    requirements = {
+        'nbtlib': 'nbtlib',
+        'numpy': 'numpy'
+    }
+    
+    print("📦 ライブラリのチェックを開始します...\n")
+    missing_packages = []
+    
+    for module_name, package_name in requirements.items():
+        try:
+            __import__(module_name)
+            print(f"✅ {package_name} は既にインストール済みです")
+        except ImportError:
+            print(f"⚠️  {package_name} が見つかりません。インストールしています...")
+            missing_packages.append(package_name)
             
-            # half=bottom (下付き) : 東西南北
-            if half == 'bottom':
-                if facing == 'east': return 5
-                elif facing == 'west': return 6
-                elif facing == 'south': return 7
-                elif facing == 'north': return 8
-            # half=top (上付き) : 東西南北
-            elif half == 'top':
-                if facing == 'east': return 9
-                elif facing == 'west': return 10
-                elif facing == 'south': return 11
-                elif facing == 'north': return 12
-        return 5  # デフォルト
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+                print(f"✅ {package_name} をインストールしました\n")
+            except subprocess.CalledProcessError:
+                print(f"❌ {package_name} のインストールに失敗しました")
+                print("手動でインストールしてください: pip install " + package_name)
+                sys.exit(1)
     
-    if 'spruce_planks' in block_name: return 1
-    if 'dark_oak_log' in block_name: return 2
-    if 'dark_oak_planks' in block_name: return 3
-    if 'birch_planks' in block_name: return 4
+    if missing_packages:
+        print(f"\n✅ 必要なライブラリをすべてインストール完了しました！\n")
+    else:
+        print("✅ すべてのライブラリが揃っています\n")
 
-    if 'dark_oak_door' in block_name: return 13
-    if 'dark_oak_fence' in block_name: return 14
-    if 'air' in block_name: return 0
+# プログラム開始前にライブラリをチェック
+install_requirements()
+
+# ここからライブラリをインポート
+import nbtlib
+import numpy as np
+
+def load_block_definitions(filename):
+    """ブロック定義をJSONファイルから読み込む"""
+    encodings = ['shift-jis', 'utf-8', 'cp1252']
+    for encoding in encodings:
+        try:
+            with open(filename, 'r', encoding=encoding) as f:
+                return json.load(f)
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            continue
+    raise ValueError(f"{filename} をどのエンコーディングでもデコードできませんでした")
+
+def block_to_id(block_name, block_properties=None, block_definitions=None):
+    """ブロック名とプロパティからIDを取得"""
+    if block_definitions is None:
+        return 99
     
-    return 99
+    # ブロック定義から優先度順にチェック
+    for block_def in block_definitions['blocks']:
+        if block_def['name'] in block_name:
+            # プロパティ条件がある場合
+            if 'conditions' in block_def and block_properties is not None:
+                for condition in block_def['conditions']:
+                    props = condition.get('properties', {})
+                    # すべてのプロパティが一致したかチェック
+                    if all(block_properties.get(key) == value for key, value in props.items()):
+                        return condition['id']
+            
+            # デフォルトIDを返す
+            return block_def.get('default_id', block_definitions.get('default_id', 99))
+    
+    return block_definitions.get('default_id', 99)
+
+def build_block_name_mapping(block_definitions):
+    """JSONから日本語ブロック名マッピングを構築"""
+    block_name_ja = {}
+    
+    for block_def in block_definitions['blocks']:
+        default_id = block_def.get('default_id')
+        
+        # conditionsがある場合は各条件のIDをマップ
+        if 'conditions' in block_def:
+            for condition in block_def['conditions']:
+                block_id = condition.get('id')
+                names_ja = condition.get('names_ja', block_def.get('names_ja', 'unknown'))
+                block_name_ja[block_id] = names_ja
+        else:
+            # conditionsがない場合はdefault_idをマップ
+            names_ja = block_def.get('names_ja', 'unknown')
+            block_name_ja[default_id] = names_ja
+    
+    return block_name_ja
+
+# ファイルパスの取得
+if len(sys.argv) > 1:
+    SCHEM_FILE = sys.argv[1]
+    BLOCK_DEFINITIONS_FILE = sys.argv[2] if len(sys.argv) > 2 else "block_definitions.json"
+else:
+    print("📁 ファイルパスを入力してください")
+    SCHEM_FILE = input("🔹 .schemファイルのパス: ").strip()
+    BLOCK_DEFINITIONS_FILE = input("🔹 ブロック定義JSONファイルのパス (デフォルト: block_definitions.json): ").strip()
+    if not BLOCK_DEFINITIONS_FILE:
+        BLOCK_DEFINITIONS_FILE = "block_definitions.json"
+
+# 入力ファイルの存在確認
+if not os.path.exists(SCHEM_FILE):
+    print(f"❌ エラー: {SCHEM_FILE} が見つかりません")
+    exit(1)
+
+if not os.path.exists(BLOCK_DEFINITIONS_FILE):
+    print(f"❌ エラー: {BLOCK_DEFINITIONS_FILE} が見つかりません")
+    exit(1)
+
+# 出力ファイルパスを生成（schemファイルと同じディレクトリ）
+schem_dir = os.path.dirname(os.path.abspath(SCHEM_FILE))
+schem_basename = os.path.splitext(os.path.basename(SCHEM_FILE))[0]
+output_file = os.path.join(schem_dir, f"{schem_basename}.h")
+
+# ブロック定義ファイルを読み込む
+print(f"ブロック定義を読み込み: {BLOCK_DEFINITIONS_FILE}")
+block_definitions = load_block_definitions(BLOCK_DEFINITIONS_FILE)
+
+# 日本語ブロック名マッピングを構築
+block_name_ja = build_block_name_mapping(block_definitions)
 
 # Schematic読み込み
 print(f"読み込み: {SCHEM_FILE}")
@@ -60,18 +147,11 @@ if palette:
                     key, value = prop.split('=')
                     props[key] = value
         
-        block_id = block_to_id(name, props)
+        block_id = block_to_id(name, props, block_definitions)
         idx_int = int(idx)
         block_id_map[idx_int] = block_id
-        
-        # spruce_stairsはログ出力
-        if 'spruce_stairs' in name:
-            half = props.get('half', 'unknown')
-            facing = props.get('facing', 'unknown')
-            print(f"📍 {name}")
-            print(f"   half={half}, facing={facing} → ID: {block_id}")
     
-    print(f"\nブロックマップ生成完了")
+    print(f"ブロックマップ生成完了")
 else:
     print("⚠️ Palette が見つかりません")
 
@@ -95,32 +175,22 @@ for y in range(height):
                 block_id = block_id_map.get(block_idx, 99)
                 level_map[z][x][y] = block_id
 
-# ファイル名から配列名を生成
-base_name = os.path.splitext(os.path.basename(SCHEM_FILE))[0].lower()
-
 # タイムスタンプを取得
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # Cヘッダ出力
-with open("levelmap.h", "w", encoding="utf-8") as f:
+with open(output_file, "w", encoding="utf-8") as f:
     f.write("#pragma once\n\n")
     f.write(f"// Generated: {timestamp}\n")
     f.write(f"// Source: {SCHEM_FILE}\n")
     f.write(f"// Block IDs:\n")
-    f.write(f"//   0: air\n")
-    f.write(f"//   1: spruce_planks\n")
-    f.write(f"//   2: dark_oak_log\n")
-    f.write(f"//   3: dark_oak_planks\n")
-    f.write(f"//   4: birch_planks\n")
-    f.write(f"//   5-8: spruce_stairs[half=bottom] (east/west/south/north)\n")
-    f.write(f"//   9-12: spruce_stairs[half=top] (east/west/south/north)\n")
-    f.write(f"//   13: dark_oak_door\n")
-    f.write(f"//   14: dark_oak_fence\n")
-    f.write(f"//   99: unknown\n\n")
-    f.write(f"#define MAP_LENGTH {length}\n")
+    for block_id in sorted(block_name_ja.keys()):
+        f.write(f"//   {block_id}: {block_name_ja.get(block_id, 'unknown')}\n")
+    
+    f.write(f"\n#define MAP_LENGTH {length}\n")
     f.write(f"#define MAP_WIDTH {width}\n")
     f.write(f"#define MAP_HEIGHT {height}\n\n")
-    f.write(f"static int {base_name}[MAP_HEIGHT][MAP_LENGTH][MAP_WIDTH] = {{\n")
+    f.write(f"static int {schem_basename}[MAP_HEIGHT][MAP_LENGTH][MAP_WIDTH] = {{\n")
     
     for y in range(height):
         f.write(f"    {{ // Y={y}\n")
@@ -132,8 +202,20 @@ with open("levelmap.h", "w", encoding="utf-8") as f:
         f.write("    },\n")
     
     f.write("};\n\n")
-    f.write(f"// 使用方法: {base_name}[y][z][x]\n")
+    f.write(f"// 使用方法: {schem_basename}[y][z][x]\n")
 
-print("\n✅ levelmap.h 生成完了！")
+print("✅ ファイル生成完了！")
+print(f"📂 出力先: {schem_dir}")
+print(f"📄 ファイル: {output_file}")
 print("📏 配列サイズ:", level_map.shape)
-print("🔢 ブロック分布:", np.bincount(level_map.flatten()))
+
+# ブロック分布を見やすく表示
+block_distribution = np.bincount(level_map.flatten())
+print("\n" + "="*50)
+print("📊 ブロック分布詳細")
+print("="*50)
+for block_id, count in enumerate(block_distribution):
+    if count > 0:
+        block_name = block_name_ja.get(block_id, 'unknown')
+        print(f"ID {block_id:3d}: {block_name:15s} × {count:5d}個")
+print("="*50)
