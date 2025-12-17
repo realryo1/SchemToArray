@@ -28,6 +28,7 @@ def install_requirements():
             except subprocess.CalledProcessError:
                 print(f"❌ {package_name} のインストールに失敗しました")
                 print("手動でインストールしてください: pip install " + package_name)
+                input("\n⏎ エンターキーを押して終了...")
                 sys.exit(1)
     
     if missing_packages:
@@ -94,128 +95,149 @@ def build_block_name_mapping(block_definitions):
     
     return block_name_ja
 
-# ファイルパスの取得
-if len(sys.argv) > 1:
-    SCHEM_FILE = sys.argv[1]
-    BLOCK_DEFINITIONS_FILE = sys.argv[2] if len(sys.argv) > 2 else "block_definitions.json"
-else:
-    print("📁 ファイルパスを入力してください")
-    SCHEM_FILE = input("🔹 .schemファイルのパス: ").strip()
-    BLOCK_DEFINITIONS_FILE = input("🔹 ブロック定義JSONファイルのパス (デフォルト: block_definitions.json): ").strip()
-    if not BLOCK_DEFINITIONS_FILE:
-        BLOCK_DEFINITIONS_FILE = "block_definitions.json"
+try:
+    # ファイルパスの取得
+    if len(sys.argv) > 1:
+        SCHEM_FILE = sys.argv[1]
+    else:
+        print("📁 ファイルパスを入力してください")
+        SCHEM_FILE = input("🔹 .schemファイルのパス: ").strip()
 
-# 入力ファイルの存在確認
-if not os.path.exists(SCHEM_FILE):
-    print(f"❌ エラー: {SCHEM_FILE} が見つかりません")
-    exit(1)
+    BLOCK_DEFINITIONS_FILE = "block_definitions.json"
 
-if not os.path.exists(BLOCK_DEFINITIONS_FILE):
-    print(f"❌ エラー: {BLOCK_DEFINITIONS_FILE} が見つかりません")
-    exit(1)
+    # 入力ファイルの存在確認
+    if not os.path.exists(SCHEM_FILE):
+        print(f"❌ エラー: {SCHEM_FILE} が見つかりません")
+        input("\n⏎ エンターキーを押して終了...")
+        sys.exit(1)
 
-# 出力ファイルパスを生成（schemファイルと同じディレクトリ）
-schem_dir = os.path.dirname(os.path.abspath(SCHEM_FILE))
-schem_basename = os.path.splitext(os.path.basename(SCHEM_FILE))[0]
-output_file = os.path.join(schem_dir, f"{schem_basename}.h")
+    if not os.path.exists(BLOCK_DEFINITIONS_FILE):
+        print(f"❌ エラー: {BLOCK_DEFINITIONS_FILE} が見つかりません")
+        print("   カレントディレクトリに block_definitions.json を配置してください")
+        input("\n⏎ エンターキーを押して終了...")
+        sys.exit(1)
 
-# ブロック定義ファイルを読み込む
-print(f"ブロック定義を読み込み: {BLOCK_DEFINITIONS_FILE}")
-block_definitions = load_block_definitions(BLOCK_DEFINITIONS_FILE)
+    # 出力ファイルパスを生成（schemファイルと同じディレクトリ）
+    schem_dir = os.path.dirname(os.path.abspath(SCHEM_FILE))
+    schem_basename = os.path.splitext(os.path.basename(SCHEM_FILE))[0]
+    output_file = os.path.join(schem_dir, f"{schem_basename}.h")
 
-# 日本語ブロック名マッピングを構築
-block_name_ja = build_block_name_mapping(block_definitions)
+    # ブロック定義ファイルを読み込む
+    print(f"ブロック定義を読み込み: {BLOCK_DEFINITIONS_FILE}")
+    block_definitions = load_block_definitions(BLOCK_DEFINITIONS_FILE)
 
-# Schematic読み込み
-print(f"読み込み: {SCHEM_FILE}")
-schem_file = nbtlib.load(SCHEM_FILE)
-schem = schem_file['Schematic']
-width, height, length = int(schem['Width']), int(schem['Height']), int(schem['Length'])
-print(f"サイズ: {width}x{height}x{length}\n")
+    # 日本語ブロック名マッピングを構築
+    block_name_ja = build_block_name_mapping(block_definitions)
 
-# パレット→IDマップ
-palette = schem.get('Blocks', {}).get('Palette', {})
-block_id_map = {}
+    # Schematic読み込み
+    print(f"読み込み: {SCHEM_FILE}")
+    schem_file = nbtlib.load(SCHEM_FILE)
+    schem = schem_file['Schematic']
+    width, height, length = int(schem['Width']), int(schem['Height']), int(schem['Length'])
+    print(f"サイズ: {width}x{height}x{length}\n")
 
-if palette:
-    for name, idx in palette.items():
-        props = {}
-        if '[' in name and ']' in name:
-            props_str = name[name.find('[')+1:name.find(']')]
-            for prop in props_str.split(','):
-                if '=' in prop:
-                    key, value = prop.split('=')
-                    props[key] = value
+    # パレット→IDマップ
+    palette = schem.get('Blocks', {}).get('Palette', {})
+    block_id_map = {}
+
+    if palette:
+        for name, idx in palette.items():
+            props = {}
+            if '[' in name and ']' in name:
+                props_str = name[name.find('[')+1:name.find(']')]
+                for prop in props_str.split(','):
+                    if '=' in prop:
+                        key, value = prop.split('=')
+                        props[key] = value
+            
+            block_id = block_to_id(name, props, block_definitions)
+            idx_int = int(idx)
+            block_id_map[idx_int] = block_id
         
-        block_id = block_to_id(name, props, block_definitions)
-        idx_int = int(idx)
-        block_id_map[idx_int] = block_id
-    
-    print(f"ブロックマップ生成完了")
-else:
-    print("⚠️ Palette が見つかりません")
+        print(f"ブロックマップ生成完了")
+    else:
+        print("⚠️ Palette が見つかりません")
 
-# Blocks解凍
-blocks_data = schem.get('Blocks', {}).get('Data')
-if blocks_data is None:
-    print("❌ エラー: Data が見つかりません")
-    exit(1)
+    # Blocks解凍
+    blocks_data = schem.get('Blocks', {}).get('Data')
+    if blocks_data is None:
+        print("❌ エラー: Data が見つかりません")
+        input("\n⏎ エンターキーを押して終了...")
+        sys.exit(1)
 
-blocks = np.array(blocks_data, dtype=np.int32)
+    blocks = np.array(blocks_data, dtype=np.int32)
 
-# 縦x横x高さ配列生成
-level_map = np.zeros((length, width, height), dtype=int)
+    # 縦x横x高さ配列生成
+    level_map = np.zeros((length, width, height), dtype=int)
 
-for y in range(height):
-    for z in range(length):
-        for x in range(width):
-            idx = y * (length * width) + z * width + x
-            if idx < len(blocks):
-                block_idx = int(blocks[idx])
-                block_id = block_id_map.get(block_idx, 99)
-                level_map[z][x][y] = block_id
-
-# タイムスタンプを取得
-timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-# Cヘッダ出力
-with open(output_file, "w", encoding="utf-8") as f:
-    f.write("#pragma once\n\n")
-    f.write(f"// Generated: {timestamp}\n")
-    f.write(f"// Source: {SCHEM_FILE}\n")
-    f.write(f"// Block IDs:\n")
-    for block_id in sorted(block_name_ja.keys()):
-        f.write(f"//   {block_id}: {block_name_ja.get(block_id, 'unknown')}\n")
-    
-    f.write(f"\n#define MAP_LENGTH {length}\n")
-    f.write(f"#define MAP_WIDTH {width}\n")
-    f.write(f"#define MAP_HEIGHT {height}\n\n")
-    f.write(f"static int {schem_basename}[MAP_HEIGHT][MAP_LENGTH][MAP_WIDTH] = {{\n")
-    
     for y in range(height):
-        f.write(f"    {{ // Y={y}\n")
         for z in range(length):
-            f.write("        {")
-            row = [f"{int(level_map[z][x][y]):2d}" for x in range(width)]
-            f.write(",".join(row))
-            f.write(f"}}, // Z={z}\n")
-        f.write("    },\n")
-    
-    f.write("};\n\n")
-    f.write(f"// 使用方法: {schem_basename}[y][z][x]\n")
+            for x in range(width):
+                idx = y * (length * width) + z * width + x
+                if idx < len(blocks):
+                    block_idx = int(blocks[idx])
+                    block_id = block_id_map.get(block_idx, 99)
+                    level_map[z][x][y] = block_id
 
-print("✅ ファイル生成完了！")
-print(f"📂 出力先: {schem_dir}")
-print(f"📄 ファイル: {output_file}")
-print("📏 配列サイズ:", level_map.shape)
+    # タイムスタンプを取得
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-# ブロック分布を見やすく表示
-block_distribution = np.bincount(level_map.flatten())
-print("\n" + "="*50)
-print("📊 ブロック分布詳細")
-print("="*50)
-for block_id, count in enumerate(block_distribution):
-    if count > 0:
-        block_name = block_name_ja.get(block_id, 'unknown')
-        print(f"ID {block_id:3d}: {block_name:15s} × {count:5d}個")
-print("="*50)
+    # 出力ファイルの上書き確認
+    if os.path.exists(output_file):
+        print(f"⚠️  ファイルが既に存在します: {output_file}")
+        response = input("上書きしますか？ (y/n): ").strip().lower()
+        if response != 'y':
+            print("❌ キャンセルしました")
+            input("\n⏎ エンターキーを押して終了...")
+            sys.exit(0)
+
+    # Cヘッダ出力
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write("#pragma once\n\n")
+        f.write(f"// Generated: {timestamp}\n")
+        f.write(f"// Source: {SCHEM_FILE}\n")
+        f.write(f"// Block IDs:\n")
+        for block_id in sorted(block_name_ja.keys()):
+            f.write(f"//   {block_id}: {block_name_ja.get(block_id, 'unknown')}\n")
+        
+        f.write(f"\n#define MAP_LENGTH {length}\n")
+        f.write(f"#define MAP_WIDTH {width}\n")
+        f.write(f"#define MAP_HEIGHT {height}\n\n")
+        f.write(f"static int {schem_basename}[MAP_HEIGHT][MAP_LENGTH][MAP_WIDTH] = {{\n")
+        
+        for y in range(height):
+            f.write(f"    {{ // Y={y}\n")
+            for z in range(length):
+                f.write("        {")
+                row = [f"{int(level_map[z][x][y]):2d}" for x in range(width)]
+                f.write(",".join(row))
+                f.write(f"}}, // Z={z}\n")
+            f.write("    },\n")
+        
+        f.write("};\n\n")
+        f.write(f"// 使用方法: {schem_basename}[y][z][x]\n")
+
+    print("✅ ファイル生成完了！")
+    print(f"📂 出力先: {schem_dir}")
+    print(f"📄 ファイル: {output_file}")
+    print("📏 配列サイズ:", level_map.shape)
+
+    # ブロック分布を見やすく表示
+    block_distribution = np.bincount(level_map.flatten())
+    print("\n" + "="*50)
+    print("📊 ブロック分布詳細")
+    print("="*50)
+    for block_id, count in enumerate(block_distribution):
+        if count > 0:
+            block_name = block_name_ja.get(block_id, 'unknown')
+            print(f"ID {block_id:3d}: {block_name:15s} × {count:5d}個")
+    print("="*50)
+
+    # エンターキーで終了
+    input("\n⏎ エンターキーを押して終了...")
+
+except Exception as e:
+    print(f"\n❌ 予期しないエラーが発生しました:")
+    print(f"   {type(e).__name__}: {e}")
+    input("\n⏎ エンターキーを押して終了...")
+    sys.exit(1)
