@@ -112,41 +112,6 @@
       "default_id": 16
     },
     {
-      "name": "dark_oak_trapdoor",
-      "names_ja": "ダークオークのトラップドア（仮）",
-      "default_id": -1
-    },
-    {
-      "name": "oak_sign",
-      "names_ja": "オークの看板（仮）",
-      "default_id": -1
-    },
-    {
-      "name": "soul_torch",
-      "names_ja": "魂の松明(仮)",
-      "default_id": -1
-    },
-    {
-      "name": "black_candle",
-      "names_ja": "黒のキャンドル（仮）",
-      "default_id": -1
-    },
-    {
-      "name": "painting",
-      "names_ja": "絵画（仮）",
-      "default_id": -1
-    },
-    {
-      "name": "black_carpet",
-      "names_ja": "黒のカーペット（仮）",
-      "default_id": -1
-    },
-    {
-      "name": "white_carpet",
-      "names_ja": "白のカーペット（仮）",
-      "default_id": -1
-    },
-    {
       "name": "barrier",
       "names_ja": "新しいブロックはこれを複製して追加する",
       "default_id": 39

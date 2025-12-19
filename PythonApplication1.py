@@ -61,7 +61,9 @@ def block_to_id(block_name, block_properties=None, block_definitions=None):
     
     # ブロック定義から優先度順にチェック
     for block_def in block_definitions['blocks']:
-        if block_def['name'] in block_name:
+        def_name = block_def['name']
+        # "minecraft:diamond_block" や "diamond_block" の両方に対応
+        if def_name in block_name or f"minecraft:{def_name}" in block_name:
             # プロパティ条件がある場合
             if 'conditions' in block_def and block_properties is not None:
                 for condition in block_def['conditions']:
@@ -91,7 +93,14 @@ def build_block_name_mapping(block_definitions):
         else:
             # conditionsがない場合はdefault_idをマップ
             names_ja = block_def.get('names_ja', 'unknown')
-            block_name_ja[default_id] = names_ja
+            if default_id == -1:
+                # ID -1 の場合はリストで管理
+                if -1 not in block_name_ja:
+                    block_name_ja[-1] = []
+                if isinstance(block_name_ja[-1], list):
+                    block_name_ja[-1].append(names_ja)
+            else:
+                block_name_ja[default_id] = names_ja
     
     return block_name_ja
 
@@ -137,7 +146,8 @@ try:
     print(f"サイズ: {width}x{height}x{length}\n")
 
     # パレット→IDマップ
-    palette = schem.get('Blocks', {}).get('Palette', {})
+    blocks_container = schem.get('Blocks', {})
+    palette = blocks_container.get('Palette', {}) if isinstance(blocks_container, dict) else {}
     block_id_map = {}
 
     if palette:
@@ -158,26 +168,49 @@ try:
     else:
         print("⚠️ Palette が見つかりません")
 
-    # Blocks解凍
-    blocks_data = schem.get('Blocks', {}).get('Data')
+    # Blocks データを取得
+    blocks_container = schem.get('Blocks', {})
+    blocks_data = blocks_container.get('Data') if isinstance(blocks_container, dict) else None
+    
     if blocks_data is None:
-        print("❌ エラー: Data が見つかりません")
+        print("❌ エラー: ブロックデータが見つかりません")
         input("\n⏎ エンターキーを押して終了...")
         sys.exit(1)
 
     blocks = np.array(blocks_data, dtype=np.int32)
 
     # 縦x横x高さ配列生成
-    level_map = np.zeros((length, width, height), dtype=int)
+    level_map = np.zeros((height, length, width), dtype=int)
 
     for y in range(height):
         for z in range(length):
             for x in range(width):
-                idx = y * (length * width) + z * width + x
+                # 仕様: index = x + z * Width + y * Width * Length
+                idx = x + z * width + y * width * length
                 if idx < len(blocks):
                     block_idx = int(blocks[idx])
                     block_id = block_id_map.get(block_idx, 99)
-                    level_map[z][x][y] = block_id
+                    level_map[y][z][x] = block_id
+
+    print("生成された配列:")
+    print("="*60)
+    for y in range(height):
+        print(f"{{ // Y={y}")
+        for z in range(length):
+            if z >= 10:
+                print("    ... (省略) ...")
+                break
+            print("    {", end="")
+            row = []
+            for x in range(width):
+                if x >= 10:
+                    row.append("...")
+                    break
+                row.append(f"{int(level_map[y][z][x]):2d}")
+            print(",".join(row), end="")
+            print(f"}}, // Z={z}")
+        print("},")
+    print("="*60 + "\n")
 
     # タイムスタンプを取得
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -209,7 +242,7 @@ try:
             f.write(f"    {{ // Y={y}\n")
             for z in range(length):
                 f.write("        {")
-                row = [f"{int(level_map[z][x][y]):2d}" for x in range(width)]
+                row = [f"{int(level_map[y][z][x]):2d}" for x in range(width)]
                 f.write(",".join(row))
                 f.write(f"}}, // Z={z}\n")
             f.write("    },\n")
@@ -223,14 +256,34 @@ try:
     print("📏 配列サイズ:", level_map.shape)
 
     # ブロック分布を見やすく表示
-    block_distribution = np.bincount(level_map.flatten())
+    block_distribution = {}
+    for block_id in level_map.flatten():
+        block_id_int = int(block_id)
+        block_distribution[block_id_int] = block_distribution.get(block_id_int, 0) + 1
+    
     print("\n" + "="*50)
     print("📊 ブロック分布詳細")
     print("="*50)
-    for block_id, count in enumerate(block_distribution):
+    
+    # ID -1 のブロック（仮）を先に出力
+    if -1 in block_distribution:
+        count = block_distribution[-1]
+        if count > 0:
+            block_names = block_name_ja.get(-1, 'unknown')
+            if isinstance(block_names, list):
+                print(f"ID {-1:3d}: " + "\n       ".join(block_names))
+                print(f"         × {count:5d}個")
+            else:
+                print(f"ID {-1:3d}: {block_names:15s} × {count:5d}個")
+    
+    # ID 0 以上のブロックを出力
+    print("-"*50)
+    for block_id in sorted([bid for bid in block_distribution.keys() if bid >= 0]):
+        count = block_distribution[block_id]
         if count > 0:
             block_name = block_name_ja.get(block_id, 'unknown')
-            print(f"ID {block_id:3d}: {block_name:15s} × {count:5d}個")
+            if not isinstance(block_name, list):
+                print(f"ID {block_id:3d}: {block_name:15s} × {count:5d}個")
     print("="*50)
 
     # エンターキーで終了
